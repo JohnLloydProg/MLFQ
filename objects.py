@@ -170,7 +170,7 @@ class ModifyWindow(tk.Toplevel):
             self.process_table.delete(item)
     
     def save_all(self):
-        self.processes.clear()
+        new_processes:list[Process] = []
         for item in self.process_table.get_children():
             pid, arrival, burst, priority = self.process_table.item(item, 'values')
             if pid and arrival and burst and priority:
@@ -181,7 +181,7 @@ class ModifyWindow(tk.Toplevel):
                     if arrival_val < 0 or burst_val <= 0 or priority_val not in [1, 2, 3]:
                         messagebox.showerror("Error", f"Invalid values for {pid}.")
                         return
-                    self.processes.append(Process(pid, arrival_val, burst_val, priority_val))
+                    new_processes.append(Process(pid, arrival_val, burst_val, priority_val))
                 except ValueError:
                     messagebox.showerror("Error", f"Invalid input in process {pid}")
                     return
@@ -201,6 +201,9 @@ class ModifyWindow(tk.Toplevel):
         except ValueError:
             messagebox.showerror("Error", "Quantum and Aging Time must be integers.")
             return
+        
+        self.processes.clear()
+        self.processes.extend(new_processes)
 
         for row in self.outer_process_table.get_children():
             self.outer_process_table.delete(row)
