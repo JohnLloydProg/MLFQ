@@ -19,7 +19,8 @@ processes:list[Process] = [
 mlfq:dict[int, dict[str, list[Process]|int]] = {
     1:{"queue":[], "quantum_time":3}, 
     2:{"queue":[], "quantum_time":3}, 
-    3:{"queue":[], "quantum_time":3}
+    3:{"queue":[], "quantum_time":3},
+    4:{"queue":[], "quantum_time":3}
 }
 settings:dict[str, int] = {"aging_time": 5, "lower_priority_time": 6}
 current_card:GanttCard = None
@@ -34,7 +35,7 @@ def randomize_processes(n=10):
     global processes
     processes = []
     for i in range(1, n+1):
-        processes.append(Process(f'P{str(i)}', random.randint(0, 10), random.randint(1, 10), random.randint(1, 3)))
+        processes.append(Process(f'P{str(i)}', random.randint(0, 10), random.randint(1, 10), random.randint(1, 4)))
     update_process_table()
 
 
@@ -48,14 +49,14 @@ def update_process_table():
 
 def update_queue_display():
     global queue_frames
-    for i in range(3):
+    for i in range(4):
         for widget in queue_frames[i].winfo_children():
             process_card:ProcessCard = widget
             if process_card.process not in mlfq[i+1]["queue"]:
                 process_card.destroy()
             else:
                 process_card.update_values()
-    for i in range(1, 4):
+    for i in range(1, 5):
         for process in mlfq[i]["queue"]:
             if process not in map(lambda process_card: process_card.process, queue_frames[i-1].winfo_children()):
                 ProcessCard(queue_frames[i-1], process)
@@ -63,7 +64,7 @@ def update_queue_display():
 
 def select_from_queues(queue:dict[int, dict[str, list[Process]|int]]) -> Process:
     global current_card
-    for priority in range(1, 4):
+    for priority in range(1, 5):
         if (queue[priority]["queue"]):
             current_process = queue[priority]["queue"].pop(0)
             current_card = GanttCard(gantt_inner, current_process)
@@ -78,7 +79,7 @@ def step():
         return
 
     #Waiting process and aging
-    for priority in range(1, 4):
+    for priority in range(1, 5):
         for process in mlfq[priority]["queue"]:
             process.wait()
             if (process.sub_wait_time >= settings.get("aging_time") and process.priority > 1):
@@ -99,7 +100,7 @@ def step():
             current_card.update_values()
         if (sim_time - start_processing >= mlfq[current_process.priority]["quantum_time"] or current_process.is_completed()):
             if (current_process.burst_time > 0):
-                if (current_process.processed_time >= settings.get("lower_priority_time") and current_process.priority < 3):
+                if (current_process.processed_time >= settings.get("lower_priority_time") and current_process.priority < 4):
                     current_process.decrease_priority()
                 mlfq[current_process.priority]["queue"].append(current_process)
             else:
@@ -214,7 +215,7 @@ tk.Button(top_frame, text="Randomize (10)", command=lambda: randomize_processes(
 process_frame = tk.Frame(root)
 process_frame.pack(side=tk.TOP, fill=tk.BOTH)
 columns = ("PID", "Arrival", "Burst", "Priority")
-process_table = ttk.Treeview(process_frame, columns=columns, show="headings", height=10)
+process_table = ttk.Treeview(process_frame, columns=columns, show="headings", height=6)
 for col in columns:
     process_table.heading(col, text=col)
     process_table.column(col, width=10)
@@ -239,7 +240,10 @@ queue1_frame.pack(pady=5, fill=tk.X)
 tk.Label(queue_frame, text="Queue 3 (Low)").pack()
 queue2_frame = tk.Frame(queue_frame)
 queue2_frame.pack(pady=5, fill=tk.X)
-queue_frames = [queue0_frame, queue1_frame, queue2_frame]
+tk.Label(queue_frame, text="Queue 4 (Very Low)").pack()
+queue3_frame = tk.Frame(queue_frame)
+queue3_frame.pack(pady=5, fill=tk.X)
+queue_frames = [queue0_frame, queue1_frame, queue2_frame, queue3_frame]
 
 # Time counter above Gantt chart
 gantt_frame = tk.Frame(main_frame)

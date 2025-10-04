@@ -77,7 +77,7 @@ class ModifyWindow(tk.Toplevel):
         self.outer_process_table = process_table
 
         self.title("Modify Processes & Parameters")
-        self.geometry("750x500")
+        self.geometry("900x500")
 
         # Parameters
         param_frame = tk.Frame(self)
@@ -96,6 +96,11 @@ class ModifyWindow(tk.Toplevel):
         self.q2_entry = tk.Entry(param_frame, width=5)
         self. q2_entry.insert(0, str(mlfq[3]["quantum_time"]))
         self.q2_entry.pack(side=tk.LEFT, padx=5)
+
+        tk.Label(param_frame, text="Queue4 Quantum:").pack(side=tk.LEFT)
+        self.q3_entry = tk.Entry(param_frame, width=5)
+        self. q3_entry.insert(0, str(mlfq[4]["quantum_time"]))
+        self.q3_entry.pack(side=tk.LEFT, padx=5)
 
         tk.Label(param_frame, text="Aging Time:").pack(side=tk.LEFT)
         self.aging_entry = tk.Entry(param_frame, width=5)
@@ -178,7 +183,7 @@ class ModifyWindow(tk.Toplevel):
                     arrival_val = int(arrival)
                     burst_val = int(burst)
                     priority_val = int(priority)
-                    if arrival_val < 0 or burst_val <= 0 or priority_val not in [1, 2, 3]:
+                    if arrival_val < 0 or burst_val <= 0 or priority_val not in [1, 2, 3, 4]:
                         messagebox.showerror("Error", f"Invalid values for {pid}.")
                         return
                     new_processes.append(Process(pid, arrival_val, burst_val, priority_val))
@@ -187,15 +192,16 @@ class ModifyWindow(tk.Toplevel):
                     return
 
         try:
-            q0_val, q1_val, q2_val = int(self.q0_entry.get()), int(self.q1_entry.get()), int(self.q2_entry.get())
+            q0_val, q1_val, q2_val, q3_val = int(self.q0_entry.get()), int(self.q1_entry.get()), int(self.q2_entry.get()), int(self.q3_entry.get())
             aging_val = int(self.aging_entry.get())
             lower_val = int(self.lower_priority_entry.get())
-            if min(q0_val, q1_val, q2_val, aging_val, lower_val) <= 0:
+            if min(q0_val, q1_val, q2_val, q3_val, aging_val, lower_val) <= 0:
                 messagebox.showerror("Error", "All times must be positive integers.")
                 return
             self.mlfq[1]["quantum_time"] = q0_val
             self.mlfq[2]["quantum_time"] = q1_val
             self.mlfq[3]["quantum_time"] = q2_val
+            self.mlfq[4]["quantum_time"] = q3_val
             self.settings['aging_time'] = aging_val
             self.settings['lower_priority_time'] = lower_val
         except ValueError:
@@ -214,7 +220,7 @@ class ModifyWindow(tk.Toplevel):
 
 
 class GanttCard(tk.Frame):
-    color = ["red", "orange", "blue"]
+    color = ["red", "orange", "blue", "green"]
 
     def __init__(self, gantt_inner, current_process:Process):
         super().__init__(gantt_inner, bd=1, relief='solid', padx=5, pady=2, bg=self.color[current_process.priority-1], width=current_process.burst_time * 20)
